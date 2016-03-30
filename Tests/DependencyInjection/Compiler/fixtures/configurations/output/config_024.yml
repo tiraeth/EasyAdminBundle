@@ -112,6 +112,9 @@ easy_admin:
                         css_class: 'btn btn-secondary action-list'
                         icon: null
             list:
+                default_scope: 'all'
+                scopes:
+                    - { id: 'all', label: 'list.scopes.all', filter: false }
                 fields:
                     id:
                         css_class: ''

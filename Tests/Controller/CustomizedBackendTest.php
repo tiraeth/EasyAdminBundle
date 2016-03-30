@@ -23,6 +23,35 @@ class CustomizedBackendTest extends AbstractTestCase
         $this->initClient(array('environment' => 'customized_backend'));
     }
 
+    public function testListViewScopes()
+    {
+        $parameters = array(
+            'action' => 'list',
+            'entity' => 'Product',
+            'view' => 'list',
+            'sortField' => 'id',
+            'sortDirection' => 'DESC',
+            'scope' => 'all',
+        );
+
+        $crawler = $this->getBackendPage($parameters);
+
+        $this->assertContains('active', $crawler->filter('.admin-scopes a.btn:contains("all")')->attr('class'));
+        $this->assertEquals(100, (int) $crawler->filter('table.table tbody tr')->eq(0)->attr('data-id'));
+
+        $parameters['scope'] = 'enabled';
+        $crawler = $this->getBackendPage($parameters);
+
+        $this->assertContains('active', $crawler->filter('.admin-scopes a.btn:contains("Enabled")')->attr('class'));
+        $this->assertEquals(90, (int) $crawler->filter('table.table tbody tr')->eq(0)->attr('data-id'));
+
+        $parameters['scope'] = 'disabled';
+        $crawler = $this->getBackendPage($parameters);
+
+        $this->assertContains('active', $crawler->filter('.admin-scopes a.btn:contains("Disabled")')->attr('class'));
+        $this->assertEquals(100, (int) $crawler->filter('table.table tbody tr')->eq(0)->attr('data-id'));
+    }
+
     public function testListViewPageTitle()
     {
         $crawler = $this->requestListView();
@@ -37,6 +66,7 @@ class CustomizedBackendTest extends AbstractTestCase
 
         $hiddenParameters = array(
             'action' => 'search',
+            'scope' => 'all',
             'entity' => 'Category',
             'sortField' => 'id',
             'sortDirection' => 'DESC',
@@ -61,7 +91,7 @@ class CustomizedBackendTest extends AbstractTestCase
         $this->assertEquals('New Category', trim($crawler->filter('.global-actions a.action-new')->text()));
         $this->assertEquals('custom_class_new action-new', $crawler->filter('.global-actions a.action-new')->attr('class'));
         $this->assertEquals('fa fa-plus-circle', $crawler->filter('.global-actions a.action-new i')->attr('class'));
-        $this->assertStringStartsWith('/admin/?action=new&entity=Category&sortField=id&sortDirection=DESC&page=1', $crawler->filter('.global-actions a.action-new')->attr('href'));
+        $this->assertStringStartsWith('/admin/?action=new&entity=Category&sortField=id&sortDirection=DESC&scope=all&page=1', $crawler->filter('.global-actions a.action-new')->attr('href'));
     }
 
     public function testListViewItemActions()
@@ -137,8 +167,8 @@ class CustomizedBackendTest extends AbstractTestCase
         $this->assertEquals('disabled', $crawler->filter('.list-pagination li:contains("First")')->attr('class'));
         $this->assertEquals('disabled', $crawler->filter('.list-pagination li:contains("Previous")')->attr('class'));
 
-        $this->assertStringStartsWith('/admin/?action=list&entity=Category&sortField=id&sortDirection=DESC&page=2', $crawler->filter('.list-pagination li a:contains("Next")')->attr('href'));
-        $this->assertStringStartsWith('/admin/?action=list&entity=Category&sortField=id&sortDirection=DESC&page=14', $crawler->filter('.list-pagination li a:contains("Last")')->attr('href'));
+        $this->assertStringStartsWith('/admin/?action=list&entity=Category&sortField=id&sortDirection=DESC&scope=all&page=2', $crawler->filter('.list-pagination li a:contains("Next")')->attr('href'));
+        $this->assertStringStartsWith('/admin/?action=list&entity=Category&sortField=id&sortDirection=DESC&scope=all&page=14', $crawler->filter('.list-pagination li a:contains("Last")')->attr('href'));
     }
 
     public function testShowViewPageTitle()
@@ -191,6 +221,7 @@ class CustomizedBackendTest extends AbstractTestCase
             'page' => '2',
             'sortDirection' => 'ASC',
             'sortField' => 'name',
+            'scope' => 'all',
         );
 
         // 1. visit a specific 'list' view page
@@ -222,6 +253,7 @@ class CustomizedBackendTest extends AbstractTestCase
             'page' => '2',
             'sortDirection' => 'ASC',
             'sortField' => 'name',
+            'scope' => 'all',
         );
 
         // 1. visit a specific 'list' view page
@@ -308,6 +340,7 @@ class CustomizedBackendTest extends AbstractTestCase
             'page' => '2',
             'sortDirection' => 'ASC',
             'sortField' => 'name',
+            'scope' => 'all',
         );
 
         // 1. visit a specific 'list' view page
@@ -389,6 +422,7 @@ class CustomizedBackendTest extends AbstractTestCase
             'page' => '2',
             'sortDirection' => 'ASC',
             'sortField' => 'name',
+            'scope' => 'all',
         );
 
         // 1. visit a specific 'list' view page
@@ -513,8 +547,8 @@ class CustomizedBackendTest extends AbstractTestCase
         $this->assertEquals('disabled', $crawler->filter('.list-pagination li:contains("First")')->attr('class'));
         $this->assertEquals('disabled', $crawler->filter('.list-pagination li:contains("Previous")')->attr('class'));
 
-        $this->assertStringStartsWith('/admin/?action=search&entity=Category&sortField=id&sortDirection=DESC&page=2', $crawler->filter('.list-pagination li a:contains("Next")')->attr('href'));
-        $this->assertStringStartsWith('/admin/?action=search&entity=Category&sortField=id&sortDirection=DESC&page=14', $crawler->filter('.list-pagination li a:contains("Last")')->attr('href'));
+        $this->assertStringStartsWith('/admin/?action=search&entity=Category&sortField=id&sortDirection=DESC&scope=all&page=2', $crawler->filter('.list-pagination li a:contains("Next")')->attr('href'));
+        $this->assertStringStartsWith('/admin/?action=search&entity=Category&sortField=id&sortDirection=DESC&scope=all&page=14', $crawler->filter('.list-pagination li a:contains("Last")')->attr('href'));
     }
 
     public function testSearchViewItemActions()
@@ -535,6 +569,7 @@ class CustomizedBackendTest extends AbstractTestCase
             'query' => 'cat',
             'sortDirection' => 'ASC',
             'sortField' => 'name',
+            'scope' => 'all',
         );
 
         // 1. visit a specific 'search' view page

@@ -17,6 +17,9 @@ easy_admin:
             label: 'Categories'
             list:
                 title: 'Product %%entity_label%%'
+                default_scope: 'all'
+                scopes:
+                    all: All
                 actions:
                     - 'show'
                     - { name: 'new', label: 'New %%entity_name%%', icon: 'plus-circle', css_class: 'custom_class_new' }
@@ -63,6 +66,11 @@ easy_admin:
             class: JavierEguiluz\Bundle\EasyAdminBundle\Tests\Fixtures\AppTestBundle\Entity\Product
             label: 'Products'
             list:
+                default_scope: 'all'
+                scopes:
+                    - all
+                    - { id: 'enabled', label: 'Enabled', filter: 'entity.enabled = true' }
+                    - { id: 'disabled', label: 'Disabled', filter: 'entity.enabled = false' }
                 fields:
                     - id
                     - name
