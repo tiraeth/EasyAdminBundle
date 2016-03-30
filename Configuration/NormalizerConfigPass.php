@@ -26,6 +26,7 @@ class NormalizerConfigPass implements ConfigPassInterface
         $backendConfig = $this->normalizeViewConfig($backendConfig);
         $backendConfig = $this->normalizePropertyConfig($backendConfig);
         $backendConfig = $this->normalizeActionConfig($backendConfig);
+        $backendConfig = $this->normalizeScopesConfig($backendConfig);
 
         return $backendConfig;
     }
@@ -196,6 +197,69 @@ class NormalizerConfigPass implements ConfigPassInterface
                 if (!is_array($backendConfig['entities'][$entityName][$view]['actions'])) {
                     throw new \InvalidArgumentException(sprintf('The "actions" configuration for the "%s" view of the "%s" entity must be an array (a string was provided).', $view, $entityName));
                 }
+            }
+        }
+
+        return $backendConfig;
+    }
+
+    private function normalizeScopesConfig(array $backendConfig)
+    {
+        foreach ($backendConfig['entities'] as $entityName => $entityConfig) {
+            if (!isset($backendConfig['entities'][$entityName]['list']['default_scope'])) {
+                $backendConfig['entities'][$entityName]['list']['default_scope'] = 'all';
+            }
+
+            if (!isset($backendConfig['entities'][$entityName]['list']['scopes'])) {
+                $backendConfig['entities'][$entityName]['list']['scopes'] = array(array('id' => 'all', 'label' => 'list.scopes.all', 'filter' => false));
+            }
+
+            $defaultScope = $backendConfig['entities'][$entityName]['list']['default_scope'];
+
+            if (!is_scalar($defaultScope)) {
+                throw new \InvalidArgumentException(sprintf('The "default_scope" configuration for the "list" view of the "%s" entity must be a scalar.', $entityName));
+            }
+
+            if (!is_array($backendConfig['entities'][$entityName]['list']['scopes'])) {
+                throw new \InvalidArgumentException(sprintf('The "scopes" configuration for the "list" view of the "%s" entity must be an array (a string was provided).', $entityName));
+            }
+
+            $defaultScopeExists = false;
+
+            foreach ($backendConfig['entities'][$entityName]['list']['scopes'] as $i => $scope) {
+                if (is_string($scope)) {
+                    $scope = is_int($i) ? array('id' => $scope) : array('label' => $scope);
+                }
+
+                if (!is_int($i)) {
+                    $scope['id'] = $i;
+                }
+
+                if (!array_key_exists('id', $scope)) {
+                    throw new \InvalidArgumentException(sprintf('All elements of the "scopes" configuration for the "list" view of the "%s" entity must contain "id" key.', $entityName));
+                }
+
+                if ($scope['id'] == $defaultScope) {
+                    $defaultScopeExists = true;
+                }
+
+                if (!array_key_exists('filter', $scope)) {
+                    $scope['filter'] = false;
+                }
+
+                if (!array_key_exists('label', $scope)) {
+                    $scope['label'] = $scope['id'];
+                }
+
+                $backendConfig['entities'][$entityName]['list']['scopes'][$i] = array(
+                    'id' => $scope['id'],
+                    'label' => $scope['label'],
+                    'filter' => $scope['filter'],
+                );
+            }
+
+            if (!$defaultScopeExists) {
+                throw new \InvalidArgumentException(sprintf('The "%s" scope does not exist in "scopes" configuration for the "list" view of the "%s" entity.', $defaultScope, $entityName));
             }
         }
 

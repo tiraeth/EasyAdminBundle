@@ -163,7 +163,7 @@ class AdminController extends Controller
         $this->dispatch(EasyAdminEvents::PRE_LIST);
 
         $fields = $this->entity['list']['fields'];
-        $paginator = $this->findAll($this->entity['class'], $this->request->query->get('page', 1), $this->config['list']['max_results'], $this->request->query->get('sortField'), $this->request->query->get('sortDirection'));
+        $paginator = $this->findAll($this->entity['class'], $this->request->query->get('page', 1), $this->config['list']['max_results'], $this->request->query->get('sortField'), $this->request->query->get('sortDirection'), $this->request->query->get('scope'));
 
         $this->dispatch(EasyAdminEvents::POST_LIST, array('paginator' => $paginator));
 
@@ -361,7 +361,7 @@ class AdminController extends Controller
         $this->dispatch(EasyAdminEvents::PRE_SEARCH);
 
         $searchableFields = $this->entity['search']['fields'];
-        $paginator = $this->findBy($this->entity['class'], $this->request->query->get('query'), $searchableFields, $this->request->query->get('page', 1), $this->config['list']['max_results'], $this->request->query->get('sortField'), $this->request->query->get('sortDirection'));
+        $paginator = $this->findBy($this->entity['class'], $this->request->query->get('query'), $searchableFields, $this->request->query->get('page', 1), $this->config['list']['max_results'], $this->request->query->get('sortField'), $this->request->query->get('sortDirection'), $this->request->query->get('scope'));
         $fields = $this->entity['list']['fields'];
 
         $this->dispatch(EasyAdminEvents::POST_SEARCH, array(
@@ -458,16 +458,17 @@ class AdminController extends Controller
      * @param int         $maxPerPage
      * @param string|null $sortField
      * @param string|null $sortDirection
+     * @param string|null $scope
      *
      * @return Pagerfanta The paginated query results
      */
-    protected function findAll($entityClass, $page = 1, $maxPerPage = 15, $sortField = null, $sortDirection = null)
+    protected function findAll($entityClass, $page = 1, $maxPerPage = 15, $sortField = null, $sortDirection = null, $scope = null)
     {
         if (empty($sortDirection) || !in_array(strtoupper($sortDirection), array('ASC', 'DESC'))) {
             $sortDirection = 'DESC';
         }
 
-        $queryBuilder = $this->executeDynamicMethod('create<EntityName>ListQueryBuilder', array($entityClass, $sortDirection, $sortField));
+        $queryBuilder = $this->executeDynamicMethod('create<EntityName>ListQueryBuilder', array($entityClass, $sortDirection, $sortField, $scope));
 
         $this->dispatch(EasyAdminEvents::POST_LIST_QUERY_BUILDER, array(
             'query_builder' => $queryBuilder,
@@ -484,12 +485,17 @@ class AdminController extends Controller
      * @param string      $entityClass
      * @param string      $sortDirection
      * @param string|null $sortField
+     * @param string|null $scope
      *
      * @return QueryBuilder The Query Builder instance
      */
-    protected function createListQueryBuilder($entityClass, $sortDirection, $sortField = null)
+    protected function createListQueryBuilder($entityClass, $sortDirection, $sortField = null, $scope = null)
     {
-        return $this->get('easyadmin.query_builder')->createListQueryBuilder($this->entity, $sortField, $sortDirection);
+        if (null === $scope) {
+            $scope = $this->entity['list']['default_scope'];
+        }
+
+        return $this->get('easyadmin.query_builder')->createListQueryBuilder($this->entity, $sortField, $sortDirection, $scope);
     }
 
     /**
@@ -503,12 +509,13 @@ class AdminController extends Controller
      * @param int         $maxPerPage
      * @param string|null $sortField
      * @param string|null $sortDirection
+     * @param string|null $scope
      *
      * @return Pagerfanta The paginated query results
      */
-    protected function findBy($entityClass, $searchQuery, array $searchableFields, $page = 1, $maxPerPage = 15, $sortField = null, $sortDirection = null)
+    protected function findBy($entityClass, $searchQuery, array $searchableFields, $page = 1, $maxPerPage = 15, $sortField = null, $sortDirection = null, $scope = null)
     {
-        $queryBuilder = $this->executeDynamicMethod('create<EntityName>SearchQueryBuilder', array($entityClass, $searchQuery, $searchableFields, $sortField, $sortDirection));
+        $queryBuilder = $this->executeDynamicMethod('create<EntityName>SearchQueryBuilder', array($entityClass, $searchQuery, $searchableFields, $sortField, $sortDirection, $scope));
 
         $this->dispatch(EasyAdminEvents::POST_SEARCH_QUERY_BUILDER, array(
             'query_builder' => $queryBuilder,
@@ -527,12 +534,17 @@ class AdminController extends Controller
      * @param array       $searchableFields
      * @param string|null $sortField
      * @param string|null $sortDirection
+     * @param string|null $scope
      *
      * @return QueryBuilder The Query Builder instance
      */
-    protected function createSearchQueryBuilder($entityClass, $searchQuery, array $searchableFields, $sortField = null, $sortDirection = null)
+    protected function createSearchQueryBuilder($entityClass, $searchQuery, array $searchableFields, $sortField = null, $sortDirection = null, $scope = null)
     {
-        return $this->get('easyadmin.query_builder')->createSearchQueryBuilder($this->entity, $searchQuery, $sortField, $sortDirection);
+        if (null === $scope) {
+            $scope = $this->entity['list']['default_scope'];
+        }
+
+        return $this->get('easyadmin.query_builder')->createSearchQueryBuilder($this->entity, $searchQuery, $sortField, $sortDirection, $scope);
     }
 
     /**

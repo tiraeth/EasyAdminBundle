@@ -10,6 +10,7 @@
     submenuIndex: app.request.get('submenuIndex'),
     sortField: app.request.get('sortField', ''),
     sortDirection: app.request.get('sortDirection', 'DESC'),
+    scope: app.request.get('scope', _entity_config.list.default_scope),
     page: app.request.get('page', 1)
 }) %}
 
@@ -42,11 +43,24 @@
     {% if easyadmin_action_is_enabled_for_list_view('search', _entity_config.name) %}
         {% set _action = easyadmin_get_action_for_list_view('search', _entity_config.name) %}
 
+        {% block scope_action %}
+            {% if _entity_config.list.scopes|length > 1 %}
+                <div class="btn-group admin-scopes">
+                    {% for scope in _entity_config.list.scopes %}
+                        <a href="{{ path('easyadmin', _request_parameters|merge({ scope: scope.id })) }}" data-scope-id="{{ scope.id }}" class="btn{% if scope.id == _request_parameters.scope %} active{% endif %}">
+                            {{ scope.label|trans(_trans_parameters) }}
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endblock %}
+
         {% block search_action %}
             <div class="form-action {{ _action.css_class|default('') }}">
                 <form method="get" action="{{ path('easyadmin') }}">
                     {% block search_form %}
                         <input type="hidden" name="action" value="search">
+                        <input type="hidden" name="scope" value="{{ _request_parameters.scope }}">
                         <input type="hidden" name="entity" value="{{ _request_parameters.entity }}">
                         <input type="hidden" name="sortField" value="{{ _request_parameters.sortField }}">
                         <input type="hidden" name="sortDirection" value="{{ _request_parameters.sortDirection }}">

@@ -40,6 +40,12 @@
                 <target>kein Wert</target>
             </trans-unit>
 
+            <!-- list scopes -->
+            <trans-unit id="list.scopes.all">
+                <source>list.scopes.all</source>
+                <target>Alle</target>
+            </trans-unit>
+
             <!-- forms -->
             <trans-unit id="form.label.collections">
                 <!-- don't change this "translation" -->

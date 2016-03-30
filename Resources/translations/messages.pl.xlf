@@ -40,6 +40,12 @@
                 <target>Pusta wartość</target>
             </trans-unit>
 
+            <!-- list scopes -->
+            <trans-unit id="list.scopes.all">
+                <source>list.scopes.all</source>
+                <target>Wszystkie</target>
+            </trans-unit>
+
             <!-- forms -->
             <trans-unit id="form.label.collections">
                 <!-- don't change this "translation" -->

@@ -35,10 +35,11 @@ class QueryBuilder
      * @param array  $entityConfig
      * @param string $sortDirection
      * @param string $sortField
+     * @param string $scope
      *
      * @return DoctrineQueryBuilder
      */
-    public function createListQueryBuilder(array $entityConfig, $sortField, $sortDirection)
+    public function createListQueryBuilder(array $entityConfig, $sortField, $sortDirection, $scope)
     {
         /** @var EntityManager */
         $em = $this->doctrine->getManagerForClass($entityConfig['class']);
@@ -47,6 +48,17 @@ class QueryBuilder
             ->select('entity')
             ->from($entityConfig['class'], 'entity')
         ;
+
+        $scopeFilter = false;
+        foreach ($entityConfig['list']['scopes'] as $listScope) {
+            if ($listScope['id'] === $scope) {
+                $scopeFilter = $listScope['filter'];
+            }
+        }
+
+        if (false !== $scopeFilter) {
+            $queryBuilder->andWhere('('.$scopeFilter.')');
+        }
 
         if (null !== $sortField) {
             $queryBuilder->orderBy('entity.'.$sortField, $sortDirection);
@@ -63,10 +75,11 @@ class QueryBuilder
      * @param $searchQuery
      * @param $sortField
      * @param $sortDirection
+     * @param $scope
      *
      * @return DoctrineQueryBuilder
      */
-    public function createSearchQueryBuilder(array $entityConfig, $searchQuery, $sortField, $sortDirection)
+    public function createSearchQueryBuilder(array $entityConfig, $searchQuery, $sortField, $sortDirection, $scope)
     {
         /** @var EntityManager */
         $em = $this->doctrine->getManagerForClass($entityConfig['class']);
@@ -76,25 +89,48 @@ class QueryBuilder
             ->from($entityConfig['class'], 'entity')
         ;
 
+        $scopeFilter = false;
+        foreach ($entityConfig['list']['scopes'] as $listScope) {
+            if ($listScope['id'] === $scope) {
+                $scopeFilter = $listScope['filter'];
+            }
+        }
+
+        $searchExpressions = array();
         $queryParameters = array();
         foreach ($entityConfig['search']['fields'] as $name => $metadata) {
             $isNumericField = in_array($metadata['dataType'], array('integer', 'number', 'smallint', 'bigint', 'decimal', 'float'));
             $isTextField = in_array($metadata['dataType'], array('string', 'text', 'guid'));
+            $searchField = sprintf('entity.%s', $name);
 
             if ($isNumericField && is_numeric($searchQuery)) {
-                $queryBuilder->orWhere(sprintf('entity.%s = :exact_query', $name));
+                $searchExpressions[] = $queryBuilder->expr()->eq($searchField, ':exact_query');
                 // adding '0' turns the string into a numeric value
                 $queryParameters['exact_query'] = 0 + $searchQuery;
             } elseif ($isTextField) {
-                $queryBuilder->orWhere(sprintf('entity.%s LIKE :fuzzy_query', $name));
+                $searchExpressions[] = $queryBuilder->expr()->like($searchField, ':fuzzy_query');
                 $queryParameters['fuzzy_query'] = '%'.$searchQuery.'%';
 
-                $queryBuilder->orWhere(sprintf('entity.%s IN (:words_query)', $name));
+                $searchExpressions[] = $queryBuilder->expr()->in($searchField, ':words_query');
                 $queryParameters['words_query'] = explode(' ', $searchQuery);
             }
         }
 
-        if (0 !== count($queryParameters)) {
+        if (false !== $scopeFilter) {
+            if (0 === count($searchExpressions)) {
+                $queryBuilder->andWhere('('.$scopeFilter.')');
+            } else {
+                $searchExpression = $queryBuilder->expr()->orX();
+                $searchExpression->addMultiple($searchExpressions);
+
+                $queryBuilder->andWhere($queryBuilder->expr()->andX('('.$scopeFilter.')', $searchExpression));
+                $queryBuilder->setParameters($queryParameters);
+            }
+        } else if (0 !== count($searchExpressions)) {
+            $searchExpression = $queryBuilder->expr()->orX();
+            $searchExpression->addMultiple($searchExpressions);
+
+            $queryBuilder->andWhere($searchExpression);
             $queryBuilder->setParameters($queryParameters);
         }
 
