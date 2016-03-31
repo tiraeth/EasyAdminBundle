@@ -101,6 +101,10 @@ class NormalizerConfigPass implements ConfigPassInterface
                 if (in_array($view, array('edit', 'new')) && !isset($entityConfig[$view]['form_options'])) {
                     $entityConfig[$view]['form_options'] = array();
                 }
+
+                if ('list' === $view && !isset($entityConfig[$view]['dql_filter'])) {
+                    $entityConfig[$view]['dql_filter'] = null;
+                }
             }
 
             $backendConfig['entities'][$entityName] = $entityConfig;
@@ -211,7 +215,7 @@ class NormalizerConfigPass implements ConfigPassInterface
             }
 
             if (!isset($backendConfig['entities'][$entityName]['list']['scopes'])) {
-                $backendConfig['entities'][$entityName]['list']['scopes'] = array(array('id' => 'all', 'label' => 'list.scopes.all', 'filter' => false));
+                $backendConfig['entities'][$entityName]['list']['scopes'] = array(array('id' => 'all', 'label' => 'list.scopes.all', 'filter' => null));
             }
 
             $defaultScope = $backendConfig['entities'][$entityName]['list']['default_scope'];
@@ -243,8 +247,8 @@ class NormalizerConfigPass implements ConfigPassInterface
                     $defaultScopeExists = true;
                 }
 
-                if (!array_key_exists('filter', $scope)) {
-                    $scope['filter'] = false;
+                if (!array_key_exists('dql_filter', $scope)) {
+                    $scope['dql_filter'] = null;
                 }
 
                 if (!array_key_exists('label', $scope)) {
@@ -254,7 +258,7 @@ class NormalizerConfigPass implements ConfigPassInterface
                 $backendConfig['entities'][$entityName]['list']['scopes'][$i] = array(
                     'id' => $scope['id'],
                     'label' => $scope['label'],
-                    'filter' => $scope['filter'],
+                    'dql_filter' => $scope['dql_filter'],
                 );
             }
 

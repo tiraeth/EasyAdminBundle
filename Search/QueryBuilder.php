@@ -52,11 +52,15 @@ class QueryBuilder
         $scopeFilter = false;
         foreach ($entityConfig['list']['scopes'] as $listScope) {
             if ($listScope['id'] === $scope) {
-                $scopeFilter = $listScope['filter'];
+                $scopeFilter = $listScope['dql_filter'];
             }
         }
 
-        if (false !== $scopeFilter) {
+        if (null !== $entityConfig['list']['dql_filter']) {
+            $queryBuilder->andWhere('('.$entityConfig['list']['dql_filter'].')');
+        }
+
+        if (null !== $scopeFilter) {
             $queryBuilder->andWhere('('.$scopeFilter.')');
         }
 
@@ -92,7 +96,7 @@ class QueryBuilder
         $scopeFilter = false;
         foreach ($entityConfig['list']['scopes'] as $listScope) {
             if ($listScope['id'] === $scope) {
-                $scopeFilter = $listScope['filter'];
+                $scopeFilter = $listScope['dql_filter'];
             }
         }
 
@@ -116,17 +120,15 @@ class QueryBuilder
             }
         }
 
-        if (false !== $scopeFilter) {
-            if (0 === count($searchExpressions)) {
-                $queryBuilder->andWhere('('.$scopeFilter.')');
-            } else {
-                $searchExpression = $queryBuilder->expr()->orX();
-                $searchExpression->addMultiple($searchExpressions);
+        if (null !== $entityConfig['list']['dql_filter']) {
+            $queryBuilder->andWhere('('.$entityConfig['list']['dql_filter'].')');
+        }
 
-                $queryBuilder->andWhere($queryBuilder->expr()->andX('('.$scopeFilter.')', $searchExpression));
-                $queryBuilder->setParameters($queryParameters);
-            }
-        } else if (0 !== count($searchExpressions)) {
+        if (null !== $scopeFilter) {
+            $queryBuilder->andWhere('('.$scopeFilter.')');
+        }
+
+        if (0 !== count($searchExpressions)) {
             $searchExpression = $queryBuilder->expr()->orX();
             $searchExpression->addMultiple($searchExpressions);
 
