@@ -215,7 +215,7 @@ class NormalizerConfigPass implements ConfigPassInterface
             }
 
             if (!isset($backendConfig['entities'][$entityName]['list']['scopes'])) {
-                $backendConfig['entities'][$entityName]['list']['scopes'] = array(array('id' => 'all', 'label' => 'list.scopes.all', 'filter' => null));
+                $backendConfig['entities'][$entityName]['list']['scopes'] = array(array('id' => 'all', 'label' => 'list.scopes.all', 'dql_filter' => null));
             }
 
             $defaultScope = $backendConfig['entities'][$entityName]['list']['default_scope'];
