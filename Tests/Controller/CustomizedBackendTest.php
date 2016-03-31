@@ -38,12 +38,14 @@ class CustomizedBackendTest extends AbstractTestCase
 
         $this->assertContains('active', $crawler->filter('.admin-scopes a.btn:contains("all")')->attr('class'));
         $this->assertEquals(100, (int) $crawler->filter('table.table tbody tr')->eq(0)->attr('data-id'));
+        $this->assertEquals('1 - 15 of 50', trim($crawler->filter('.list-pagination-counter')->text()));
 
         $parameters['scope'] = 'enabled';
         $crawler = $this->getBackendPage($parameters);
 
         $this->assertContains('active', $crawler->filter('.admin-scopes a.btn:contains("Enabled")')->attr('class'));
         $this->assertEquals(90, (int) $crawler->filter('table.table tbody tr')->eq(0)->attr('data-id'));
+        $this->assertEquals('1 - 15 of 40', trim($crawler->filter('.list-pagination-counter')->text()));
 
         $parameters['scope'] = 'disabled';
         $crawler = $this->getBackendPage($parameters);

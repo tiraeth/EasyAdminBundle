@@ -66,11 +66,12 @@ easy_admin:
             class: JavierEguiluz\Bundle\EasyAdminBundle\Tests\Fixtures\AppTestBundle\Entity\Product
             label: 'Products'
             list:
+                dql_filter: 'entity.id > 50'
                 default_scope: 'all'
                 scopes:
                     - all
-                    - { id: 'enabled', label: 'Enabled', filter: 'entity.enabled = true' }
-                    - { id: 'disabled', label: 'Disabled', filter: 'entity.enabled = false' }
+                    - { id: 'enabled', label: 'Enabled', dql_filter: 'entity.enabled = true' }
+                    - { id: 'disabled', label: 'Disabled', dql_filter: 'entity.enabled = false' }
                 fields:
                     - id
                     - name

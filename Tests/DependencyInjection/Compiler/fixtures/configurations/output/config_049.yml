@@ -114,7 +114,7 @@ easy_admin:
             list:
                 default_scope: 'all'
                 scopes:
-                    - { id: 'all', label: 'list.scopes.all', filter: false }
+                    - { id: 'all', label: 'list.scopes.all', dql_filter: false }
                 fields:
                     id:
                         css_class: ''
